@@ -1,8 +1,6 @@
 # **Build your portfolio with Once UI's Magic Portfolio**
 
-View the [demo here](https://demo.magic-portfolio.com).
-
-![Magic Portfolio](public/images/cover.png)
+View the [demo here](https://abhishekardev.vercel.app/).
 
 
 # **Getting started**
@@ -63,14 +61,6 @@ Add a new .mdx file to src/app/blog/posts or src/app/work/projects
 - A localized version of Magic Portfolio is available with the next-intl library
 - To use localization, switch to the 'i18n' branch
 
-# **Authors**
-
-Connect with us on Threads or LinkedIn.
-
-Lorant Toth: [Threads](https://www.threads.net/@lorant.one), [LinkedIn](https://www.linkedin.com/in/tothlorant/)  
-Zsofia Komaromi: [Threads](https://www.threads.net/@zsofia_kom), [LinkedIn](https://www.linkedin.com/in/zsofiakomaromi/)
-
-Localization added by [François Hernandez](https://github.com/francoishernandez)
 
 # **Get involved**
 
