@@ -93,6 +93,7 @@ const about = {
     experiences: [
       {
         company: "T-Works",
+        logo: "/images/projects/project-01/tworks-logomade.jpeg",
         timeframe: "2025 - Present",
         role: "Software Intern",
         achievements: [
@@ -110,12 +111,6 @@ const about = {
             alt: "Once UI Project",
             width: 16,
             height: 9,
-          },
-          {
-            src: "/images/projects/project-01/tworks-logomade.jpeg",
-            alt: "TWorks Logo",
-            width: 1,
-            height: 1,
           },
           {
             src: "/images/projects/project-01/Tworks2.jpeg",

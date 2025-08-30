@@ -218,9 +218,20 @@ export default function About() {
                 {about.work.experiences.map((experience, index) => (
                   <Column key={`${experience.company}-${experience.role}-${index}`} fillWidth>
                     <Flex fillWidth horizontal="space-between" vertical="end" marginBottom="4">
-                      <Text id={experience.company} variant="heading-strong-l">
-                        {experience.company}
-                      </Text>
+                      <Flex gap="8" vertical="center">
+                        {experience.logo && (
+                          <SmartImage
+                            src={experience.logo}
+                            alt={`${experience.company} logo`}
+                            width={5}
+                            height={5}
+                            radius="s"
+                          />
+                        )}
+                        <Text id={experience.company} variant="heading-strong-l">
+                          {experience.company}
+                        </Text>
+                      </Flex>
                       <Text variant="heading-default-xs" onBackground="neutral-weak">
                         {experience.timeframe}
                       </Text>
