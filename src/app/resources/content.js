@@ -92,8 +92,42 @@ const about = {
     title: "Work Experience",
     experiences: [
       {
+        company: "T-Works",
+        timeframe: "2025 - Present",
+        role: "Software Intern",
+        achievements: [
+          <>
+            Developed a custom Odoo module (MoU/NDA Manager) that streamlines agreement workflows with staged tracking, digital signatures, and PDF automation, integrated seamlessly for end-to-end client engagement management.
+          </>,
+          <>
+            Enabled clients to upload their own documents, ensured compliance with legal workflows, and incorporated audit trails for transparency and security.
+          </>,
+        ],
+        images: [
+          // optional: leave the array empty if you don't want to display images
+          {
+            src: "/images/projects/project-01/T-Works.jpeg",
+            alt: "Once UI Project",
+            width: 16,
+            height: 9,
+          },
+          {
+            src: "/images/projects/project-01/tworks-logomade.jpeg",
+            alt: "TWorks Logo",
+            width: 1,
+            height: 1,
+          },
+          {
+            src: "/images/projects/project-01/Tworks2.jpeg",
+            alt: "Once UI Project",
+            width: 16,
+            height: 9,
+          },
+        ],
+      },
+      {
         company: "ASOCA",
-        timeframe: "2023 - Present",
+        timeframe: "2023 - 2024",
         role: "Jr Web Developer",
         achievements: [
           <>
@@ -117,7 +151,7 @@ const about = {
       },
       {
         company: "PRAGNA.AI",
-        timeframe: "2024 - Present",
+        timeframe: "2024 - Jun 2025",
         role: "Lead Developer",
         achievements: [
           <>
@@ -222,6 +256,11 @@ const gallery = {
       orientation: "vertical",
     },
     {
+      src: "/images/gallery/Genoveta.jpg",
+      alt: "image",
+      orientation: "horizontal",
+    },
+    {
       src: "/images/gallery/img-02.jpg",
       alt: "image",
       orientation: "horizontal",
@@ -252,9 +291,9 @@ const gallery = {
       orientation: "horizontal",
     },
     {
-      src: "/images/gallery/img-08.jpg",
+      src: "/images/gallery/Genoveta2.jpg",
       alt: "image",
-      orientation: "vertical",
+      orientation: "horizontal",
     },
     {
       src: "/images/gallery/img-09.jpg",
