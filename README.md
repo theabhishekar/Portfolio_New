@@ -5,11 +5,11 @@ View the [demo here](https://abhishekardev.vercel.app/).
 
 # **Getting started**
 
-Magic Portfolio was built with [Once UI](https://once-ui.com) for [Next.js](https://nextjs.org). It requires Node.js v18.17+.
+Magic Portfolio was built with [Once UI] for [Next.js](https://nextjs.org). It requires Node.js v18.17+.
 
 **1. Clone the repository**
 ```
-git clone https://github.com/once-ui-system/magic-portfolio.git
+git clone https://github.com/
 ```
 
 **2. Install dependencies**
@@ -40,7 +40,7 @@ Add a new .mdx file to src/app/blog/posts or src/app/work/projects
 # **Features**
 
 ## **Once UI**
-- All tokens, components & features of [Once UI](https://once-ui.com)
+- All tokens, components & features of [Once UI]
 
 ## **SEO**
 - Automatic open-graph and X image generation with next/og
@@ -49,7 +49,7 @@ Add a new .mdx file to src/app/blog/posts or src/app/work/projects
 ## **Design**
 - Responsive layout optimized for all screen sizes
 - Timeless design without heavy animations and motion
-- Endless customization options through [data attributes](https://once-ui.com/docs/theming)
+- Endless customization options through [data attributes]
 
 ## **Content**
 - Render sections conditionally based on the content file
