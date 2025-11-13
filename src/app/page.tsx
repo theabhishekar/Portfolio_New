@@ -5,7 +5,7 @@ import { Projects } from "@/components/work/Projects";
 
 import { baseURL, routes } from "@/app/resources";
 import { home, about, person, newsletter } from "@/app/resources/content";
-import { Mailchimp } from "@/components";
+import { Mailchimp, PixelGrid } from "@/components";
 import { Posts } from "@/components/blog/Posts";
 
 export async function generateMetadata() {
@@ -62,6 +62,7 @@ export default function Home() {
           }),
         }}
       />
+      <PixelGrid />
       <Column fillWidth paddingY="l" gap="m">
         <Column maxWidth="s">
           <RevealFx translateY="4" fillWidth horizontal="start" paddingBottom="m">
