@@ -190,35 +190,86 @@ const about = {
     title: "Technical skills",
     skills: [
       {
-        title: "Figma",
-        description: <>Able to prototype in Figma with Once UI with unnatural speed.</>,
-        images: [
-          {
-            src: "/images/projects/project-01/cover-02.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
-          },
-          {
-            src: "/images/projects/project-01/cover-03.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
-          },
-        ],
+        title: "T3 Stack",
+        icon: "code",
+      },
+      {
+        title: "React",
+        icon: "react",
+      },
+      {
+        title: "TypeScript",
+        icon: "code",
+      },
+      {
+        title: "JavaScript",
+        icon: "codeBold",
       },
       {
         title: "Next.js",
-        description: <>Building next gen apps with Next.js + Once UI + Supabase.</>,
-        // optional: leave the array empty if you don't want to display images
-        images: [
-          {
-            src: "/images/projects/project-01/Commingsoon.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
-          },
-        ],
+        icon: "sparkles",
+      },
+      {
+        title: "Golang",
+        icon: "terminal",
+      },
+      {
+        title: "Rust",
+        icon: "cpu",
+      },
+      {
+        title: "React Native",
+        icon: "react",
+      },
+      {
+        title: "TailwindCSS",
+        icon: "code",
+      },
+      {
+        title: "Python",
+        icon: "python",
+      },
+      {
+        title: "Java",
+        icon: "java",
+      },
+      {
+        title: "Product Design",
+        icon: "grid",
+      },
+      {
+        title: "UI/UX",
+        icon: "sparkles",
+      },
+    ],
+  },
+  tools: {
+    display: true,
+    title: "Tools I know",
+    tools: [
+      {
+        title: "Git",
+        icon: "git",
+      },
+      {
+        title: "Github",
+        icon: "github",
+      },
+      {
+        title: "Figma",
+        icon: "figma",
+      },
+      {
+        title: "VS Code",
+        icon: "code",
+      },
+      {
+        title: "Expo",
+        icon: "sparkles",
+      },
+      {
+        title: "AWS",
+        icon: "aws",
       },
     ],
   },

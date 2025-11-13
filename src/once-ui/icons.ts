@@ -23,6 +23,9 @@ import {
   HiArrowRight,
   HiOutlineEye,
   HiOutlineEyeSlash,
+  HiCodeBracket,
+  HiCpuChip,
+  HiSparkles,
 } from "react-icons/hi2";
 
 import {
@@ -31,9 +34,23 @@ import {
   PiGridFourDuotone,
   PiBookBookmarkDuotone,
   PiImageDuotone,
+  PiCodeBold,
+  PiTerminalBold,
 } from "react-icons/pi";
 
-import { FaDiscord, FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { 
+  FaDiscord, 
+  FaGithub, 
+  FaLinkedin, 
+  FaXTwitter,
+  FaReact,
+  FaNode,
+  FaPython,
+  FaJava,
+  FaAws,
+  FaFigma,
+  FaGitAlt,
+} from "react-icons/fa6";
 
 export const iconLibrary: Record<string, IconType> = {
   chevronUp: HiChevronUp,
@@ -67,4 +84,17 @@ export const iconLibrary: Record<string, IconType> = {
   x: FaXTwitter,
   clipboard: HiClipboard,
   arrowUpRightFromSquare: HiArrowTopRightOnSquare,
+  // New tech icons
+  code: HiCodeBracket,
+  codeBold: PiCodeBold,
+  terminal: PiTerminalBold,
+  cpu: HiCpuChip,
+  sparkles: HiSparkles,
+  react: FaReact,
+  node: FaNode,
+  python: FaPython,
+  java: FaJava,
+  aws: FaAws,
+  figma: FaFigma,
+  git: FaGitAlt,
 };
