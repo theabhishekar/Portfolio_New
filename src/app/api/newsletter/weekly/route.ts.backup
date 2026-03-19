@@ -1,0 +1,541 @@
+import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
+
+// Create SMTP transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    // Verify this is coming from Vercel Cron or authorized source
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get all active subscribers
+    const { data: subscribers, error } = await supabase
+      .from('newsletter_subscribers')
+      .select('email')
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Failed to fetch subscribers:', error);
+      return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 });
+    }
+
+    if (!subscribers || subscribers.length === 0) {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'No active subscribers found',
+        sent: 0 
+      });
+    }
+
+    // Get current date info for the email
+    const currentDate = new Date();
+    const weekNumber = getWeekNumber(currentDate);
+    const formattedDate = currentDate.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    // Weekly email template - Based on Canva design  
+    const getWeeklyEmailTemplate = (email: string) => {
+      const emailName = email.split('@')[0];
+      const displayName = emailName
+        .replace(/[._-]/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+      return `
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="preload" as="image" href="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/b3274256f49765853e7b518fb14705da.png">
+          <link rel="preload" as="image" href="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/d36df4d69bfa5a4ba1aca98f1c3ca393.png">
+          <link rel="preload" as="image" href="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/b9cda63990b1f34afe6a5db0f2789241.png">
+          <link rel="preload" as="image" href="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/d4d0dd553d1731094583a8ca962fac36.png">
+          <link rel="preload" as="image" href="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/8cd8a06872af93400acdfbd61bf94048.png">
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+          <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+          <meta name="x-apple-disable-message-reformatting">
+          <title>Weekly Update from MAGI's Portfolio</title>
+          <style>
+            body { width:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%;background-color:#f0f1f5;margin:0;padding:0 }
+            table { border-collapse:collapse;font-family:Arial, Helvetica, sans-serif }
+            .layout-0 { display:table;border-spacing:0px;border-collapse:separate;width:100%;max-width:100%;table-layout:fixed;margin:0 auto }
+            @media (max-width: 200px) { .layout-0 { display: none !important; } .layout-0-under-200 { display: table !important; } }
+            @media (max-width: 450px) { .layout-1 { display: none !important; } .layout-1-under-450 { display: table !important; } }
+            @media (max-width: 200px) { .layout-2 { display: none !important; } .layout-2-under-200 { display: table !important; } }
+            @media (max-width: 450px) { .layout-3 { display: none !important; } .layout-3-under-450 { display: table !important; } }
+          </style>
+        </head>
+        <body style="width:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%;background-color:#f0f1f5;margin:0;padding:0">
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#f0f1f5" style="background-color:#f0f1f5">
+            <tbody>
+              <tr>
+                <td style="background-color:#f0f1f5">
+                  <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;min-height:600px;margin:0 auto;background-color:#ffffff">
+                    <tbody>
+                      <tr><td style="vertical-align:top"></td></tr>
+                      <tr>
+                        <td style="vertical-align:top;padding:10px 0px 0px 0px">
+                          <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                            <tbody>
+                              <tr>
+                                <td style="padding:10px 0 10px 0;vertical-align:top">
+                                  <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="color:#000;font-style:normal;font-weight:normal;font-size:16px;line-height:1.4;letter-spacing:0;text-align:left;direction:ltr;border-collapse:collapse;font-family:Arial, Helvetica, sans-serif;white-space:normal;word-wrap:break-word;word-break:break-word">
+                                    <tbody>
+                                      <tr><td style="padding:0px 20px">
+                                        
+                                        <!-- Hero Image -->
+                                        <table cellpadding="0" cellspacing="0" border="0" style="width:100%">
+                                          <tbody><tr><td align="center">
+                                            <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px">
+                                              <tbody><tr>
+                                                <td style="width:100%;padding:0">
+                                                  <img src="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/b3274256f49765853e7b518fb14705da.png" width="560" height="420" style="display:block;width:100%;height:auto;max-width:100%" alt="Weekly Update from MAGI ABHISHKEAR">
+                                                </td>
+                                              </tr></tbody>
+                                            </table>
+                                          </td></tr></tbody>
+                                        </table>
+                                        
+                                        <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                        
+                                        <!-- Welcome Message -->
+                                        <tr>
+                                          <td dir="ltr" style="color:#0e1b10;font-size:18.6667px;font-weight:700;letter-spacing:-0.04em;line-height:1.2;text-align:center;padding:0px 20px">
+                                            Weekly update from my portfolio! Here's what's happening this week, ${displayName}!<br>
+                                          </td>
+                                        </tr>
+                                        
+                                        <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                        
+                                        <!-- Bullet Points -->
+                                        <tr><td dir="ltr" style="line-height:1.2;text-align:justify;padding:0px 20px;font-size:0">
+                                          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:Arial, Helvetica, sans-serif">
+                                            <tbody><tr>
+                                              <td style="width:24px;vertical-align:top;padding-right:8px;text-align:right;white-space:nowrap">
+                                                <span style="font-size:18.6667px;color:#0e1b10;display:inline-block">•</span>
+                                              </td>
+                                              <td style="font-size:18.6667px;font-weight:700;letter-spacing:-0.04em;color:#0e1b10;white-space:pre-wrap;vertical-align:top">
+                                                Latest portfolio updates and features<br>
+                                              </td>
+                                            </tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                        <tr><td dir="ltr" style="line-height:1.2;text-align:justify;padding:0px 20px;font-size:0">
+                                          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:Arial, Helvetica, sans-serif">
+                                            <tbody><tr>
+                                              <td style="width:24px;vertical-align:top;padding-right:8px;text-align:right;white-space:nowrap">
+                                                <span style="font-size:18.6667px;color:#0e1b10;display:inline-block">•</span>
+                                              </td>
+                                              <td style="font-size:18.6667px;font-weight:700;letter-spacing:-0.04em;color:#0e1b10;white-space:pre-wrap;vertical-align:top">
+                                                Fresh blog posts and tech insights<br>
+                                              </td>
+                                            </tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                        <tr><td dir="ltr" style="line-height:1.2;text-align:justify;padding:0px 20px;font-size:0">
+                                          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:Arial, Helvetica, sans-serif">
+                                            <tbody><tr>
+                                              <td style="width:24px;vertical-align:top;padding-right:8px;text-align:right;white-space:nowrap">
+                                                <span style="font-size:18.6667px;color:#0e1b10;display:inline-block">•</span>
+                                              </td>
+                                              <td style="font-size:18.6667px;font-weight:700;letter-spacing:-0.04em;color:#0e1b10;white-space:pre-wrap;vertical-align:top">
+                                                Behind-the-scenes development stories<br>
+                                              </td>
+                                            </tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                        <tr><td dir="ltr" style="line-height:1.2;text-align:justify;padding:0px 20px;font-size:0">
+                                          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:Arial, Helvetica, sans-serif">
+                                            <tbody><tr>
+                                              <td style="width:24px;vertical-align:top;padding-right:8px;text-align:right;white-space:nowrap">
+                                                <span style="font-size:18.6667px;color:#0e1b10;display:inline-block">•</span>
+                                              </td>
+                                              <td style="font-size:18.6667px;font-weight:700;letter-spacing:-0.04em;color:#0e1b10;white-space:pre-wrap;vertical-align:top">
+                                                Cool experiments and tutorials<br>
+                                              </td>
+                                            </tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                        <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                        
+                                        <!-- Separator -->
+                                        <tr><td style="padding:0px 20px">
+                                          <table cellpadding="0" cellspacing="0" border="0" style="width:100%">
+                                            <tbody><tr><td align="center">
+                                              <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px">
+                                                <tbody><tr>
+                                                  <td height="1px" style="height:1px;border-radius:999px;line-height:1px;font-size:0;background-color:#bfc3c8">&nbsp;</td>
+                                                </tr></tbody>
+                                              </table>
+                                            </td></tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                        <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                        
+                                        <!-- CTA Section -->
+                                        <tr><td dir="ltr" style="color:#0e1b10;font-size:29.3333px;font-weight:700;letter-spacing:-0.04em;white-space:pre-wrap;line-height:1;text-align:center;padding:0px 20px">
+                                          Check out what's new!<br>
+                                        </td></tr>
+                                        
+                                        <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                        
+                                        <!-- Button -->
+                                        <tr><td style="padding:0px 20px">
+                                          <table cellpadding="0" cellspacing="0" border="0" style="width:100%">
+                                            <tbody><tr><td align="center">
+                                              <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:300px">
+                                                <tbody><tr>
+                                                  <td style="width:100%;padding:20 0">
+                                                    <table cellpadding="0" cellspacing="0" style="width:100%;border-spacing:0;border-collapse:separate">
+                                                      <tbody><tr>
+                                                        <td valign="middle" height="50" style="height:50px;vertical-align:middle;box-sizing:border-box;background-color:#030200;border-top:3px solid #231f20;border-bottom:3px solid #231f20;border-left:3px solid #231f20;border-right:3px solid #231f20;border-top-left-radius:100px;border-top-right-radius:100px;border-bottom-left-radius:100px;border-bottom-right-radius:100px">
+                                                          <a href="https://abhishekardev.vercel.app/about" target="_blank" rel="noopener" style="text-decoration:none;display:block">
+                                                            <table cellpadding="0" cellspacing="0" style="width:100%;height:100%;border-spacing:0;border-collapse:collapse">
+                                                              <tbody><tr>
+                                                                <td style="color:#f6f5f1;font-size:18.6667px;font-weight:bold;font-family:Arial, Helvetica, sans-serif;font-style:normal;text-decoration:none;direction:ltr;text-align:center;line-height:1.4em;letter-spacing:0em;vertical-align:middle;box-sizing:border-box">
+                                                                  <span style="color:#f6f5f1">Visit Portfolio ➔</span>
+                                                                </td>
+                                                              </tr></tbody>
+                                                            </table>
+                                                          </a>
+                                                        </td>
+                                                      </tr></tbody>
+                                                    </table>
+                                                  </td>
+                                                </tr></tbody>
+                                              </table>
+                                            </td></tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                        <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                        
+                                        <!-- Weekly Highlights Box -->
+                                        <tr><td style="padding:0px 20px">
+                                          <table border="0" cellpadding="0" cellspacing="0" align="center" style="display:table;border-spacing:0px;border-collapse:separate;width:100%;max-width:451px;table-layout:fixed;margin:0 auto;border-top-left-radius:0;border-top-right-radius:0;border-bottom-left-radius:0;border-bottom-right-radius:0">
+                                            <tbody><tr><td style="text-align:center">
+                                              <table border="0" cellpadding="0" cellspacing="0" style="border-spacing:0px;border-collapse:separate;width:100%;max-width:451px;table-layout:fixed;margin:0 auto">
+                                                <tbody><tr>
+                                                  <td width="100.00%" style="width:100.00%;box-sizing:border-box;vertical-align:middle;border-top-left-radius:100px;border-top-right-radius:100px;border-bottom-left-radius:100px;border-bottom-right-radius:100px">
+                                                    <table border="0" cellpadding="0" cellspacing="0" style="border-spacing:0px;border-collapse:separate;width:100%;table-layout:fixed">
+                                                      <tbody><tr><td style="padding:17px">
+                                                        <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="color:#000;font-style:normal;font-weight:normal;font-size:16px;line-height:1.4;letter-spacing:0;text-align:left;direction:ltr;border-collapse:collapse;font-family:Arial, Helvetica, sans-serif;white-space:normal;word-wrap:break-word;word-break:break-word">
+                                                          <tbody>
+                                                            <tr><td dir="ltr" style="color:#1a1a2e;font-size:20px;white-space:pre-wrap;line-height:1.2;text-align:left">
+                                                              This Week's Update - ${formattedDate}<br>
+                                                            </td></tr>
+                                                            <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                                            <tr><td dir="ltr" style="color:#666666;font-size:16px;white-space:pre-wrap;line-height:1.5;text-align:left">
+                                                              Hope you're having a fantastic week! Here's what's been happening in my tech world this week.<br>
+                                                            </td></tr>
+                                                            <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                                            <tr><td dir="ltr" style="color:#666666;font-size:14px;font-style:italic;white-space:pre-wrap;line-height:1.2;text-align:left">
+                                                              Week ${weekNumber} of 2026 - Keep building amazing things!<br>
+                                                            </td></tr>
+                                                          </tbody>
+                                                        </table>
+                                                      </td></tr></tbody>
+                                                    </table>
+                                                  </td>
+                                                </tr></tbody>
+                                              </table>
+                                            </td></tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                        <tr><td style="font-size:0;height:16px" height="16">&nbsp;</td></tr>
+                                        
+                                        <!-- Footer Section -->
+                                        <tr><td>
+                                          <table border="0" cellpadding="0" cellspacing="0" align="center" style="display:table;border-spacing:0px;border-collapse:separate;width:100%;max-width:100%;table-layout:fixed;margin:0 auto;background-color:#f5f5f5">
+                                            <tbody><tr><td style="text-align:center;padding:8px 20px">
+                                              <table border="0" cellpadding="0" cellspacing="0" style="border-spacing:0px;border-collapse:separate;width:100%;max-width:560px;table-layout:fixed;margin:0 auto">
+                                                <tbody><tr>
+                                                  <!-- Social Icons -->
+                                                  <td width="24.60%" style="width:24.60%;box-sizing:border-box;vertical-align:middle">
+                                                    <table border="0" cellpadding="0" cellspacing="0" style="border-spacing:0px;border-collapse:separate;width:100%;table-layout:fixed">
+                                                      <tbody><tr><td style="padding:5px">
+                                                        <a href="https://www.instagram.com/theabhishekar/" target="_blank" rel="noopener nofollow" style="display:block;text-decoration:none;border:none;outline:none">
+                                                          <img src="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/d36df4d69bfa5a4ba1aca98f1c3ca393.png" width="31" height="32" style="display:block;width:100%;height:auto;max-width:31px">
+                                                        </a>
+                                                      </td></tr></tbody>
+                                                    </table>
+                                                  </td>
+                                                  <td width="3" style="width:3px;box-sizing:border-box;font-size:0">&nbsp;</td>
+                                                  <td width="24.60%" style="width:24.60%;box-sizing:border-box;vertical-align:middle">
+                                                    <table border="0" cellpadding="0" cellspacing="0" style="border-spacing:0px;border-collapse:separate;width:100%;table-layout:fixed">
+                                                      <tbody><tr><td style="padding:10px">
+                                                        <a href="https://www.linkedin.com/in/theabhishekar-m/" target="_blank" rel="noopener nofollow" style="display:block;text-decoration:none;border:none;outline:none">
+                                                          <img src="https://geo1omip7n9j-g3qbl2m4omgxowosvix08ginkmcwtq.canva-cdn.email/b9cda63990b1f34afe6a5db0f2789241.png" width="40" height="35" style="display:block;width:100%;height:auto;max-width:40px">
+                                                        </a>
+                                                      </td></tr></tbody>
+                                                    </table>
+                                                  </td>
+                                                </tr></tbody>
+                                              </table>
+                                            </td></tr></tbody>
+                                          </table>
+                                        </td></tr>
+                                        
+                                      </td></tr></tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `;
+    };
+
+    // Send emails to all subscribers
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Weekly Update from MAGI's Portfolio</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+          </style>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #f0f2f5; padding: 40px 20px;">
+            
+            <!-- Hero Section with Gradient -->
+            <div style="background: linear-gradient(135deg, #000000 0%, #1e3a8a 50%, #06b6d4 100%); border-radius: 24px; padding: 60px 40px; text-align: center; margin-bottom: 40px; position: relative; overflow: hidden;">
+              <!-- Decorative elements -->
+              <div style="position: absolute; top: 20px; right: 30px; width: 60px; height: 60px; background: rgba(255, 165, 0, 0.3); border-radius: 50%; filter: blur(20px);"></div>
+              <div style="position: absolute; bottom: 30px; left: 40px; width: 40px; height: 40px; background: rgba(255, 69, 0, 0.4); border-radius: 50%; filter: blur(15px);"></div>
+              
+              <h1 style="color: white; font-size: 32px; font-weight: 400; margin-bottom: 8px; letter-spacing: -0.5px;">
+                Weekly Update from
+              </h1>
+              <h2 style="color: white; font-size: 48px; font-weight: 700; margin-bottom: 20px; letter-spacing: -1px;">
+                MAGI<br>
+                <span style="font-size: 24px; font-weight: 400; letter-spacing: 2px;">ABHISHKEAR</span>
+              </h2>
+              <p style="color: rgba(255, 255, 255, 0.9); font-size: 18px; margin: 0;">
+                ${formattedDate} • Week ${weekNumber}
+              </p>
+            </div>
+
+            <!-- Personal Greeting -->
+            <div style="background: white; border-radius: 16px; padding: 40px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+              <h3 style="color: #1f2937; font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+                Hello, ${displayName}!
+              </h3>
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0;">
+                Hope you're having a fantastic week! Here's what's been happening in my tech world this week.
+              </p>
+            </div>
+
+            <!-- This Week's Highlights -->
+            <div style="background: white; border-radius: 16px; padding: 40px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+              <h3 style="color: #1f2937; font-size: 22px; font-weight: 600; margin-bottom: 25px;">
+                This Week's Highlights:
+              </h3>
+              
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="color: #374151; font-size: 16px; margin-bottom: 12px; padding-left: 20px; position: relative;">
+                  <span style="position: absolute; left: 0; color: #059669;">•</span>
+                  Worked on improving the portfolio's pixel art feature
+                </li>
+                <li style="color: #374151; font-size: 16px; margin-bottom: 12px; padding-left: 20px; position: relative;">
+                  <span style="position: absolute; left: 0; color: #059669;">•</span>
+                  Enhanced the newsletter system with personalized emails
+                </li>
+                <li style="color: #374151; font-size: 16px; margin-bottom: 12px; padding-left: 20px; position: relative;">
+                  <span style="position: absolute; left: 0; color: #059669;">•</span>
+                  Exploring new React optimization techniques
+                </li>
+                <li style="color: #374151; font-size: 16px; margin-bottom: 0; padding-left: 20px; position: relative;">
+                  <span style="position: absolute; left: 0; color: #059669;">•</span>
+                  Planning some exciting new projects for next week
+                </li>
+              </ul>
+            </div>
+
+            <!-- Call to Action -->
+            <div style="background: white; border-radius: 16px; padding: 40px; margin-bottom: 30px; text-align: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+              <h3 style="color: #1f2937; font-size: 24px; font-weight: 600; margin-bottom: 30px;">
+                Want to see what I'm building!
+              </h3>
+              <a href="https://abhishekardev.vercel.app/about" style="display: inline-block; background: #000000; color: white; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 500; font-size: 16px;">
+                Visit Portfolio →
+              </a>
+            </div>
+
+            <!-- Pixel Art Update -->
+            <div style="background: white; border-radius: 16px; padding: 40px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+              <h3 style="color: #1f2937; font-size: 22px; font-weight: 600; margin-bottom: 20px;">
+                Pixel Art Update
+              </h3>
+              <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 15px;">
+                The collaborative pixel art canvas has been getting some amazing contributions this week! 
+                Come check out what fellow subscribers have been creating and add your own touch.
+              </p>
+              <p style="color: #9ca3af; font-size: 14px; font-style: italic; margin: 0;">
+                Current canvas: Over ${Math.floor(Math.random() * 50) + 20} unique colors painted by visitors like you!
+              </p>
+            </div>
+
+            <!-- Quote Section -->
+            <div style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border-radius: 16px; padding: 40px; margin-bottom: 30px; text-align: center;">
+              <p style="color: #374151; font-size: 18px; font-style: italic; margin: 0 0 15px 0; line-height: 1.6; font-weight: 500;">
+                "The best way to predict the future is to create it."
+              </p>
+              <p style="color: #6b7280; font-size: 14px; margin: 0;">
+                - Peter Drucker
+              </p>
+            </div>
+
+            <!-- Social Links -->
+            <div style="text-align: center; margin-bottom: 30px;">
+              <table style="margin: 0 auto;">
+                <tr>
+                  <td style="padding: 0 15px;">
+                    <a href="https://instagram.com/theabhishekar" style="text-decoration: none;">
+                      <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-size: 20px;">📷</span>
+                      </div>
+                    </a>
+                  </td>
+                  <td style="padding: 0 15px;">
+                    <a href="https://linkedin.com/in/theabhishekar" style="text-decoration: none;">
+                      <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-size: 20px;">💼</span>
+                      </div>
+                    </a>
+                  </td>
+                  <td style="padding: 0 15px;">
+                    <a href="https://github.com/theabhishekar" style="text-decoration: none;">
+                      <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-size: 20px;">💻</span>
+                      </div>
+                    </a>
+                  </td>
+                  <td style="padding: 0 15px;">
+                    <a href="mailto:${process.env.FROM_EMAIL}" style="text-decoration: none;">
+                      <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-size: 20px;">📧</span>
+                      </div>
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div style="background: #1f2937; border-radius: 16px; padding: 30px; text-align: center;">
+              <p style="color: #d1d5db; font-size: 14px; margin-bottom: 15px;">
+                You're receiving this weekly update as a subscriber
+              </p>
+              <p style="color: white; font-size: 16px; font-weight: 500; margin-bottom: 20px;">
+                ${email}
+              </p>
+              <div style="border-top: 1px solid #374151; padding-top: 20px;">
+                <a href="https://abhishekardev.vercel.app/about" style="color: #60a5fa; text-decoration: none; font-size: 14px; margin-right: 20px;">
+                  Visit Portfolio
+                </a>
+                <span style="color: #6b7280;">|</span>
+                <a href="mailto:${process.env.FROM_EMAIL}?subject=Weekly Update Feedback" style="color: #60a5fa; text-decoration: none; font-size: 14px; margin-left: 20px;">
+                  Send Feedback
+                </a>
+              </div>
+              <p style="color: #9ca3af; font-size: 12px; margin: 20px 0 0 0;">
+                Have a great rest of your week!<br>
+                - MAGI
+              </p>
+            </div>
+
+          </div>
+        </body>
+        </html>
+      `;
+    };
+
+    // Send emails to all subscribers
+    const emailPromises = subscribers.map((subscriber) => {
+      return transporter.sendMail({
+        from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+        to: subscriber.email,
+        subject: `Weekly Update from MAGI • Week ${weekNumber}`,
+        html: getWeeklyEmailTemplate(subscriber.email),
+        text: `Weekly Update from MAGI\n\n${formattedDate} • Week ${weekNumber}\n\nHello! Hope you're having a great week!\n\nThis week's highlights:\n- Worked on portfolio improvements\n- Enhanced newsletter system\n- Exploring new React techniques\n- Planning exciting new projects\n\nVisit my portfolio: https://abhishekardev.vercel.app/about\n\nHave a great rest of your week!\n- MAGI`,
+      });
+    });
+
+    // Wait for all emails to be sent
+    await Promise.all(emailPromises);
+
+    // Log the weekly update in database
+    await supabase.from('portfolio_updates').insert({
+      update_type: 'weekly_update',
+      title: `Weekly Update • Week ${weekNumber}`,
+      description: `Automated weekly newsletter sent to ${subscribers.length} subscribers`,
+      url: "https://abhishekardev.vercel.app/about",
+      email_sent: true,
+      email_sent_at: new Date().toISOString(),
+      subscribers_count: subscribers.length
+    });
+
+    console.log(`Weekly newsletter sent to ${subscribers.length} subscribers`);
+
+    return NextResponse.json({
+      success: true,
+      message: `Weekly newsletter sent successfully to ${subscribers.length} subscribers!`,
+      sent: subscribers.length,
+      week: weekNumber,
+      date: formattedDate
+    });
+
+  } catch (error) {
+    console.error('Weekly newsletter error:', error);
+    return NextResponse.json({
+      error: 'Failed to send weekly newsletter',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}
+
+// Helper function to get week number of the year
+function getWeekNumber(date: Date): number {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
