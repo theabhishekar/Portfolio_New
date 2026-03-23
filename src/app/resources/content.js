@@ -98,10 +98,15 @@ const about = {
         role: "Software Intern",
         achievements: [
           <>
-            Developed a custom Odoo module (MoU/NDA Manager) that streamlines agreement workflows with staged tracking, digital signatures, and PDF automation, integrated seamlessly for end-to-end client engagement management.
+          Developed a custom ERP platform handling both internal and client-side requirements Implemented comprehensive ticket tracking and follow-up system for service management
+          </>,
+          <>
+          Developed a custom Odoo module (MoU/NDA Manager) that streamlines agreement workflows with staged tracking, digital signatures, and PDF automation, integrated seamlessly for end-to-end client engagement management.
+
           </>,
           <>
             Enabled clients to upload their own documents, ensured compliance with legal workflows, and incorporated audit trails for transparency and security.
+
           </>,
         ],
         images: [
@@ -119,6 +124,21 @@ const about = {
             height: 9,
           },
         ],
+      },
+      {
+        company: "DSR (Dream Start Rise)",
+        logo: "/images/projects/project-01/DSR new logo.png",
+        timeframe: "2025 - Present",
+        role: "Software Developer",
+        achievements: [
+          <>
+            Developed a full end-to-end PaaS application that enables users to post innovation ideas with proper documentation journals for collaborative review and feedback.
+          </>,
+          <>
+            Built a comprehensive platform where innovators can share ideas publicly and receive community reviews, fostering a culture of innovation and knowledge sharing.
+          </>,
+        ],
+        images: [],
       },
       {
         company: "ASOCA",

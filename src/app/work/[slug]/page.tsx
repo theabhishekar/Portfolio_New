@@ -1,7 +1,16 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "@/components/mdx";
 import { getPosts } from "@/app/utils/utils";
-import { AvatarGroup, Button, Column, Flex, Heading, SmartImage, Text } from "@/once-ui/components";
+import {
+  AvatarGroup,
+  Button,
+  Carousel,
+  Column,
+  Flex,
+  Heading,
+  SmartImage,
+  Text,
+} from "@/once-ui/components";
 import { baseURL } from "@/app/resources";
 import { person } from "@/app/resources/content";
 import { formatDate } from "@/app/utils/formatDate";
@@ -75,6 +84,9 @@ export default function Project({ params }: WorkParams) {
       src: person.avatar,
     })) || [];
 
+  const isDsrProject = post.metadata.title === "DSR Innovation Platform";
+  const dsrDocsUrl = "https://abhishekar.gitbook.io/dsr/documentation";
+
   return (
     <Column as="section" maxWidth="m" horizontal="center" gap="l">
       <script
@@ -105,23 +117,98 @@ export default function Project({ params }: WorkParams) {
         </Button>
         <Heading variant="display-strong-s">{post.metadata.title}</Heading>
       </Column>
-      {post.metadata.images.length > 0 && (
-        <SmartImage
-          priority
-          aspectRatio="16 / 9"
-          radius="m"
-          alt="image"
-          src={post.metadata.images[0]}
-        />
-      )}
-      <Column style={{ margin: "auto" }} as="article" maxWidth="xs">
-        <Flex gap="12" marginBottom="24" vertical="center">
-          {post.metadata.team && <AvatarGroup reverse avatars={avatars} size="m" />}
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
-          </Text>
+
+      {isDsrProject ? (
+        <Flex
+          fillWidth
+          mobileDirection="column"
+          horizontal="space-between"
+          vertical="start"
+          gap="l"
+          paddingX="s"
+        >
+          <Column flex={7} maxWidth={36} gap="16">
+            <Flex gap="12" marginBottom="8" vertical="center">
+              {post.metadata.team && <AvatarGroup reverse avatars={avatars} size="m" />}
+              <Text variant="body-default-s" onBackground="neutral-weak">
+                {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
+              </Text>
+            </Flex>
+            {post.metadata.summary && (
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-strong"
+                style={{ lineHeight: 1.6 }}
+              >
+                {post.metadata.summary}
+              </Text>
+            )}
+            <Column as="article" maxWidth={36}>
+              <CustomMDX source={post.content} />
+            </Column>
+          </Column>
+          {post.metadata.images.length > 0 && (
+            <Column flex={5} horizontal="center" vertical="start" fillWidth gap="12">
+              <Carousel
+                sizes="(max-width: 768px) 92vw, 360px"
+                aspectRatio="9 / 16"
+                imageObjectFit="contain"
+                indicator="thumbnail"
+                style={{ maxWidth: "22.5rem" }}
+                images={post.metadata.images.map((image: string) => ({
+                  src: image,
+                  alt: post.metadata.title,
+                }))}
+              />
+              <a
+                href={dsrDocsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none", width: "100%", display: "flex", justifyContent: "center" }}
+              >
+                <Flex
+                  gap="8"
+                  vertical="center"
+                  paddingX="12"
+                  paddingY="8"
+                  radius="m"
+                  border="neutral-medium"
+                  background="neutral-alpha-weak"
+                >
+                  <img
+                    src="/images/projects/project-01/gitbook.svg"
+                    alt="GitBook logo"
+                    width={40}
+                    height={40}
+                  />
+                  <Text variant="body-default-s">View Documentation on GitBook</Text>
+                </Flex>
+              </a>
+            </Column>
+          )}
         </Flex>
-        <CustomMDX source={post.content} />
+      ) : (
+        post.metadata.images.length > 0 && (
+          <SmartImage
+            priority
+            aspectRatio="16 / 9"
+            radius="m"
+            alt="image"
+            src={post.metadata.images[0]}
+          />
+        )
+      )}
+
+      <Column style={{ margin: "auto" }} as="article" maxWidth="xs">
+        {!isDsrProject && (
+          <Flex gap="12" marginBottom="24" vertical="center">
+            {post.metadata.team && <AvatarGroup reverse avatars={avatars} size="m" />}
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
+            </Text>
+          </Flex>
+        )}
+        {!isDsrProject && <CustomMDX source={post.content} />}
       </Column>
       <ScrollToHash />
     </Column>

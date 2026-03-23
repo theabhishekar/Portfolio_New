@@ -220,13 +220,23 @@ export default function About() {
                     <Flex fillWidth horizontal="space-between" vertical="end" marginBottom="4">
                       <Flex gap="8" vertical="center">
                         {experience.logo && (
-                          <SmartImage
-                            src={experience.logo}
-                            alt={`${experience.company} logo`}
-                            width={5}
-                            height={5}
-                            radius="s"
-                          />
+                          experience.company === "DSR (Dream Start Rise)" ? (
+                            <SmartImage
+                              src={experience.logo}
+                              alt={`${experience.company} logo`}
+                              width={5}
+                              height={7}
+                              radius="s"
+                            />
+                          ) : (
+                            <SmartImage
+                              src={experience.logo}
+                              alt={`${experience.company} logo`}
+                              width={5}
+                              height={5}
+                              radius="s"
+                            />
+                          )
                         )}
                         <Text id={experience.company} variant="heading-strong-l">
                           {experience.company}
