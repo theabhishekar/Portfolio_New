@@ -64,11 +64,14 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('pixel_grid')
-      .update({ 
-        color,
-        updated_at: new Date().toISOString()
-      })
-      .eq('pixel_id', pixel_id)
+      .upsert(
+        {
+          pixel_id,
+          color,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'pixel_id' }
+      )
       .select()
       .single();
 

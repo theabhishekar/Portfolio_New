@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createClient, type RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import styles from './PixelGrid.module.scss';
 
 interface GridCell {
@@ -11,6 +12,16 @@ interface GridCell {
 
 const COLORS = ['#FF0000', '#FF7700', '#FFFF00', '#00FF00', '#0000FF', '#7700FF', '#000000', '#FFFFFF'];
 const DEFAULT_COLOR = '#1a1a2e';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+interface PixelRow {
+  pixel_id: number;
+  color: string;
+}
 
 export default function PixelGrid() {
   const [grid, setGrid] = useState<GridCell[]>([]);
@@ -24,42 +35,84 @@ export default function PixelGrid() {
   const GRID_COLS = 40;
   const GRID_ROWS = 10;
 
-  useEffect(() => {
-    // Initialize grid
+  const createGridFromMap = (colorMap: Record<number, string> = {}) => {
     const cellCount = GRID_COLS * GRID_ROWS;
-    
-    // Try to load saved colors from localStorage
-    const savedColors = localStorage.getItem('pixelGridColors');
-    let initialGrid: GridCell[];
-    
-    if (savedColors) {
-      try {
-        const savedColorMap = JSON.parse(savedColors);
-        initialGrid = Array.from({ length: cellCount }, (_, i) => {
-          const color = savedColorMap[i] || DEFAULT_COLOR;
+    return Array.from({ length: cellCount }, (_, i) => {
+      const color = colorMap[i] || DEFAULT_COLOR;
+      return {
+        id: i,
+        color,
+        displayColor: color,
+      };
+    });
+  };
+
+  const fetchPixels = async () => {
+    try {
+      const response = await fetch('/api/pixels', { cache: 'no-store' });
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      const serverPixels = data?.pixels || {};
+
+      setGrid((prevGrid) => {
+        if (prevGrid.length === 0) {
+          return createGridFromMap(serverPixels);
+        }
+
+        return prevGrid.map((cell) => {
+          const nextColor = serverPixels[cell.id] || DEFAULT_COLOR;
           return {
-            id: i,
-            color: color,
-            displayColor: color,
+            ...cell,
+            color: nextColor,
+            displayColor: nextColor,
           };
         });
-      } catch (e) {
-        // Fallback if JSON parsing fails
-        initialGrid = Array.from({ length: cellCount }, (_, i) => ({
-          id: i,
-          color: DEFAULT_COLOR,
-          displayColor: DEFAULT_COLOR,
-        }));
-      }
-    } else {
-      initialGrid = Array.from({ length: cellCount }, (_, i) => ({
-        id: i,
-        color: DEFAULT_COLOR,
-        displayColor: DEFAULT_COLOR,
-      }));
+      });
+    } catch (error) {
+      console.error('Failed to fetch pixel grid:', error);
     }
-    
-    setGrid(initialGrid);
+  };
+
+  useEffect(() => {
+    // Load initial state, then receive live updates from Supabase Realtime.
+    fetchPixels();
+
+    const channel = supabase
+      .channel('pixel-grid-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pixel_grid' },
+        (payload: RealtimePostgresChangesPayload<PixelRow>) => {
+          const next = payload.new as PixelRow | null;
+          if (!next || typeof next.pixel_id !== 'number' || !next.color) {
+            return;
+          }
+
+          setGrid((prevGrid) => {
+            if (prevGrid.length === 0) {
+              return prevGrid;
+            }
+
+            return prevGrid.map((cell) =>
+              cell.id === next.pixel_id
+                ? { ...cell, color: next.color, displayColor: next.color }
+                : cell
+            );
+          });
+        }
+      )
+      .subscribe();
+
+    // Low-frequency backup sync to handle dropped events/reconnects.
+    const interval = setInterval(fetchPixels, 30000);
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleGridMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -103,25 +156,31 @@ export default function PixelGrid() {
     }, 500); // 500ms delay
   };
 
-  const handleCellClick = (cellId: number) => {
-    setGrid((prevGrid) => {
-      const updatedGrid = prevGrid.map((cell) =>
+  const handleCellClick = async (cellId: number) => {
+    // Optimistic UI update for fast painting feedback.
+    const previousGrid = grid;
+    setGrid((prevGrid) =>
+      prevGrid.map((cell) =>
         cell.id === cellId
           ? { ...cell, color: currentColor, displayColor: currentColor }
           : cell
-      );
-      
-      // Save to localStorage
-      const colorMap: { [key: number]: string } = {};
-      updatedGrid.forEach((cell) => {
-        if (cell.color !== DEFAULT_COLOR) {
-          colorMap[cell.id] = cell.color;
-        }
+      )
+    );
+
+    try {
+      const response = await fetch('/api/pixels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pixel_id: cellId, color: currentColor }),
       });
-      localStorage.setItem('pixelGridColors', JSON.stringify(colorMap));
-      
-      return updatedGrid;
-    });
+
+      if (!response.ok) {
+        setGrid(previousGrid);
+      }
+    } catch (error) {
+      console.error('Failed to update pixel:', error);
+      setGrid(previousGrid);
+    }
   };
 
   const handleColorChange = (color: string) => {
