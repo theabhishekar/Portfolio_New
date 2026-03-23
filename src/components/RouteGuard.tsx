@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { routes, protectedRoutes } from "@/app/resources";
-import { Flex, Spinner, Input, Button, Heading, Column, PasswordInput } from "@/once-ui/components";
+import { Flex, Spinner, Button, Heading, Column, PasswordInput } from "@/once-ui/components";
 import NotFound from "@/app/not-found";
 
 interface RouteGuardProps {
@@ -46,7 +46,10 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
       const routeEnabled = checkRouteEnabled();
       setIsRouteEnabled(routeEnabled);
 
-      if (protectedRoutes[pathname as keyof typeof protectedRoutes]) {
+      // Allow all case-study detail pages under /work without password prompt.
+      const isWorkCaseStudyPage = pathname?.startsWith("/work/") && pathname !== "/work";
+
+      if (!isWorkCaseStudyPage && protectedRoutes[pathname as keyof typeof protectedRoutes]) {
         setIsPasswordRequired(true);
 
         const response = await fetch("/api/check-auth");
