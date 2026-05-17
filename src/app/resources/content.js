@@ -7,7 +7,7 @@ const person = {
     return `${this.firstName} ${this.lastName}`;
   },
   role: "WEB DEVELOPER",
-  avatar: "/images/myAvatar.jpg",
+  avatar: "/images/IMG.png",
   location: "Asia/Kolkata", 
   languages: ["HYD"], 
 };
@@ -95,7 +95,7 @@ const about = {
         company: "T-Works",
         logo: "/images/projects/project-01/tworks-logomade.jpeg",
         timeframe: "2025 - Present",
-        role: "Software Intern",
+        role: "SDE INTERN",
         achievements: [
           <>
           Developed a custom ERP platform handling both internal and client-side requirements Implemented comprehensive ticket tracking and follow-up system for service management
